@@ -5,7 +5,7 @@
 ### A live, retro‑phosphor FIFA World Cup match‑cast that runs entirely in your terminal.
 
 Dot‑matrix scoreboard · ASCII national flags · goal & card bursts (with a real terminal bell) ·
-live group standings · a knockout bracket · and a rotating **culture / news / r/soccer** ticker
+a live event feed · today/tomorrow fixtures · and a rotating **culture / news / r/soccer** ticker
 that takes over during the slow moments of a match.
 
 ![Python 3.9+](https://img.shields.io/badge/python-3.9%2B-3776AB?logo=python&logoColor=white)
@@ -104,7 +104,7 @@ Press **Ctrl‑C** to quit.
   turn **off** the profile's *"Retro terminal effects"* and *"Use acrylic material"* — the app
   brings its own retro styling. (The `.bat` already enlarges the classic console font and enables
   VT processing to kill flicker.)
-- A wider window (≈120 columns) gives the scoreboard and bracket room to breathe.
+- A wider window (≈120 columns) gives the scoreboard and panels room to breathe.
 
 ---
 
@@ -126,7 +126,7 @@ please keep that in mind if you fork and increase the polling.
 
 - Degrades gracefully offline — the header shows `OFFLINE` and the last frame stays on screen
   until the feed returns.
-- Standings and the bracket fill in as ESPN publishes group draws and results.
+- Fixtures, scores, and the live event feed fill in as ESPN publishes the schedule and results.
 - This is an unofficial, non‑commercial **fan project**. It is not affiliated with, endorsed by,
   or sponsored by FIFA or ESPN; all marks belong to their respective owners.
 
