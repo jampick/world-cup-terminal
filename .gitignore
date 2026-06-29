@@ -1,0 +1,34 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+.venv-mac/
+venv/
+env/
+
+# Generated preview thumbnails (the committed docs are the *.svg)
+docs/*.png
+
+# Internal developer handoff notes — kept local, not published
+HANDOFF.md
+
+# Superseded by README.md (and references the original OneDrive hand-off flow)
+SETUP.txt
+
+# PyInstaller build artifacts
+build/
+dist/
+*.spec
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Machine-specific / build artifacts (do not commit)
+# .lnk: Windows shortcut has absolute paths to this machine
+# .zip: distributable build artifact (use GitHub Releases instead)
+*.lnk
+WorldCup-Terminal.zip
