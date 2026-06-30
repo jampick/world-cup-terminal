@@ -298,6 +298,9 @@ class Side:
         self.abbr  = t.get("abbreviation", self.name[:3].upper())
         self.color = t.get("color", "")
         self.score = c.get("score", "0")
+        # penalty-shootout tally (knockout ties decided from the spot); None if no shootout
+        self.shootout = c.get("shootoutScore")
+        self.winner   = bool(c.get("winner", False))
         self.home  = c.get("homeAway") == "home"
         self.form  = c.get("form", "")
         recs = c.get("records") or []
@@ -321,6 +324,8 @@ class Match:
         st          = ev.get("status", {}).get("type", {})
         self.state  = st.get("state", "pre")            # pre / in / post
         self.detail = st.get("shortDetail", st.get("description", ""))
+        # ESPN status name, e.g. STATUS_FINAL / STATUS_FINAL_AET / STATUS_FINAL_PEN
+        self.status_name = st.get("name", "")
         self.clock  = ev.get("status", {}).get("displayClock", "")
         self.period = ev.get("status", {}).get("period", 0)
         ven         = comp.get("venue", {})
@@ -350,6 +355,37 @@ class Match:
         if "quarter" in n:                       return "Quarterfinal"
         if "round of 16" in n or "round of 32" in n or "playoff" in n: return self.note.title()
         return ""
+
+    @property
+    def shootout(self):
+        """'home–away' penalty tally if this match was decided on pens, else ''."""
+        h, a = self.home, self.away
+        if not h or not a:                              return ""
+        if h.shootout is None and a.shootout is None:   return ""
+        return f"{h.shootout or 0}–{a.shootout or 0}"
+
+    @property
+    def pens(self):
+        """(winner_abbr, 'W–L') for a shootout, winner's tally first; else None.
+
+        A knockout tie level after extra time is settled from the spot, so the
+        shootout — not the 1–1 scoreline — is what decided who advanced. We lead
+        with the winner so a glance answers "who went through?".
+        """
+        h, a = self.home, self.away
+        if not h or not a:                              return None
+        if h.shootout is None and a.shootout is None:   return None
+        hs, as_ = h.shootout or 0, a.shootout or 0
+        if h.winner:        return (h.abbr, f"{hs}–{as_}")
+        if a.winner:        return (a.abbr, f"{as_}–{hs}")
+        # winner flag missing — fall back to the higher tally
+        hi, lo = max(hs, as_), min(hs, as_)
+        return (h.abbr if hs >= as_ else a.abbr, f"{hi}–{lo}")
+
+    @property
+    def aet(self):
+        """True if settled in extra time without a shootout (a.e.t.)."""
+        return "AET" in (self.status_name or "").upper() and not self.pens
 
     @property
     def live(self):  return self.state == "in"
@@ -818,6 +854,9 @@ def scoreboard_panel(m):
             t.append("\n")
         t.append("\nSCORE\n", style="bold grey85")
         t.append(sc, style="bold bright_yellow")
+        if side.shootout is not None:
+            tag = "  ✓" if side.winner else ""
+            t.append(f"\npens {side.shootout}{tag}", style="bold magenta")
         return t
     grid.add_row(block(m.home), mid, block(m.away))
 
@@ -1002,9 +1041,21 @@ def fixtures_panel(matches, budget=12):
             score = Text(f"{m.home.score}–{m.away.score}", style="bold bright_green")
             extra = Text(m.clock or m.detail, style="yellow")
         elif m.done:
-            badge = Text("FT", style="grey74")
             score = Text(f"{m.home.score}–{m.away.score}", style="bold grey85")
-            extra = Text("", style="grey74")
+            pens = m.pens
+            if pens:
+                # Settled on penalties. Keep the scoreline clean and put the
+                # shootout in the roomy right column (winner first) so it can't
+                # get truncated out of the cramped name/score column.
+                win_abbr, tally = pens
+                badge = Text("PENS", style="bold magenta")
+                extra = Text(f"{win_abbr} {tally}", style="bold magenta")
+            elif m.aet:
+                badge = Text("AET", style="bold cyan")
+                extra = Text("a.e.t.", style="cyan")
+            else:
+                badge = Text("FT", style="grey74")
+                extra = Text("", style="grey74")
         else:
             badge = Text("◷", style="green")
             score = Text("v", style="grey74")
